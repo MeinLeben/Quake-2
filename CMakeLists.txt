@@ -67,9 +67,8 @@ file(GLOB SOURCE
 	"./client/vid.h"
 	"./win32/winquake.h")
 
-add_executable(quake2 WIN32 ${SOURCE})
-
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT quake2)
-#set_property(TARGET quake2 PROPERTY VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 set_property(DIRECTORY ${CMAKE_CURRENT_LIST_DIR} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY quake2)
+
+add_executable(quake2 WIN32 ${SOURCE} "./win32/q2.rc")
 target_link_libraries(quake2 winmm.lib wsock32.lib)
