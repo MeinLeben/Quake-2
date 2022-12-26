@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(game)
-
 file(GLOB SOURCE 
 	"../game/*.c"
 	"../game/*.h")

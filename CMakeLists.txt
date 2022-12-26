@@ -2,9 +2,9 @@ cmake_minimum_required(VERSION 3.16)
 
 set(CMAKE_GENERATOR_PLATFORM Win32)
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
-project(Quake2)
+project(Quake2 C ASM_MASM)
 
 add_definitions(-D_DEBUG)
 add_definitions(-DWIN32)
@@ -15,6 +15,7 @@ add_compile_definitions(Use_Debug_Libraries=1)
 add_compile_definitions(Ignore_Export_Lib=0)
 
 add_subdirectory(ref_gl)
+add_subdirectory(ref_soft)
 add_subdirectory(game)
 
 file(GLOB SOURCE 
@@ -67,8 +68,11 @@ file(GLOB SOURCE
 	"./client/vid.h"
 	"./win32/winquake.h")
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /SAFESEH:NO")
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT quake2)
 set_property(DIRECTORY ${CMAKE_CURRENT_LIST_DIR} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY quake2)
 
 add_executable(quake2 WIN32 ${SOURCE} "./win32/q2.rc")
+add_dependencies(quake2 gamex86 ref_gl ref_soft)
+
 target_link_libraries(quake2 winmm.lib wsock32.lib)
