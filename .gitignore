@@ -1,0 +1,7 @@
+[Bb]uild/
+[Dd]ebug/
+[Bb]aseq2/*.lst
+[Bb]aseq2/*.pak
+[Bb]aseq2/[Vv]ideo/
+[Bb]aseq2/[Pp]layers/
+*.ncb
