@@ -70,9 +70,10 @@ file(GLOB SOURCE
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /SAFESEH:NO")
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT quake2)
-set_property(DIRECTORY ${CMAKE_CURRENT_LIST_DIR} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY quake2)
 
 add_executable(quake2 WIN32 ${SOURCE} "./win32/q2.rc")
 add_dependencies(quake2 gamex86 ref_gl ref_soft)
 
 target_link_libraries(quake2 winmm.lib wsock32.lib)
+
+add_custom_command(TARGET quake2 POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/baseq2/" "${CMAKE_CURRENT_BINARY_DIR}/baseq2/")

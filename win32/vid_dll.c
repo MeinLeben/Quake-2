@@ -52,8 +52,6 @@ qboolean	reflib_active = 0;
 
 HWND        cl_hwnd;            // Main window handle for life of program
 
-#define VID_NUM_MODES ( sizeof( vid_modes ) / sizeof( vid_modes[0] ) )
-
 LONG WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 
 static qboolean s_alttab_disabled;
@@ -476,28 +474,77 @@ void VID_Front_f( void )
 */
 typedef struct vidmode_s
 {
-	const char *description;
+	char *description;
 	int         width, height;
 	int         mode;
 } vidmode_t;
 
-vidmode_t vid_modes[] =
+vidmode_t *vid_modes = NULL;
+int vid_num_modes = 0;
+
+void VID_UpdateModeInfo()
 {
-	{ "Mode 0: 320x240",   320, 240,   0 },
-	{ "Mode 1: 400x300",   400, 300,   1 },
-	{ "Mode 2: 512x384",   512, 384,   2 },
-	{ "Mode 3: 640x480",   640, 480,   3 },
-	{ "Mode 4: 800x600",   800, 600,   4 },
-	{ "Mode 5: 960x720",   960, 720,   5 },
-	{ "Mode 6: 1024x768",  1024, 768,  6 },
-	{ "Mode 7: 1152x864",  1152, 864,  7 },
-	{ "Mode 8: 1280x960",  1280, 960, 8 },
-	{ "Mode 9: 1600x1200", 1600, 1200, 9 }
-};
+	vidmode_t* tmp_modes = NULL;
+	int tmp_num_modes = 0;
+	int mode_index = 0;
+	qboolean validmode = true;
+	DEVMODE dm = { 0 };
+	dm.dmSize = sizeof(dm);
+	char scratch[64];
+
+	for ( int i = 0; EnumDisplaySettings( NULL, i, &dm ) != 0; i++ )
+	{
+		tmp_num_modes++;
+	}
+
+	
+	tmp_modes = Z_Malloc(sizeof(vidmode_t) * tmp_num_modes);
+	for ( int i = 0; EnumDisplaySettings( NULL, i, &dm ) != 0; i++ )
+	{
+		if ((dm.dmPelsWidth / 16) * 9 != dm.dmPelsHeight)
+			continue;
+
+		validmode = true;
+		for (int j = 0; j < mode_index; j++)
+		{
+			if (tmp_modes[j].width == dm.dmPelsWidth &&
+				tmp_modes[j].height == dm.dmPelsHeight)
+			{
+				validmode = false;
+				break;
+			}
+		}
+
+		if (!validmode)
+			continue;
+
+		tmp_modes[mode_index].mode = mode_index;
+		tmp_modes[mode_index].width = dm.dmPelsWidth;
+		tmp_modes[mode_index].height = dm.dmPelsHeight;
+
+		Com_sprintf(scratch, sizeof(scratch), "[%dx%d]", tmp_modes[mode_index].width, tmp_modes[mode_index].height);
+		tmp_modes[mode_index].description = Z_Malloc(strlen(scratch));
+		strcpy(tmp_modes[mode_index].description, scratch);
+		mode_index++;
+	}
+
+	vid_num_modes = mode_index;
+
+	vid_modes = Z_Malloc(sizeof(vidmode_t) * vid_num_modes);
+	memcpy(vid_modes, tmp_modes, sizeof(vidmode_t) * vid_num_modes);
+	Z_Free(tmp_modes);
+}
+
+const char* VID_GetModeDescription( int mode )
+{
+	if ( mode < 0 || mode >= vid_num_modes )
+		return "";
+	return vid_modes[mode].description;
+}
 
 qboolean VID_GetModeInfo( int *width, int *height, int mode )
 {
-	if ( mode < 0 || mode >= VID_NUM_MODES )
+	if ( mode < 0 || mode >= vid_num_modes )
 		return false;
 
 	*width  = vid_modes[mode].width;
@@ -738,7 +785,9 @@ void VID_Init (void)
 
 	/* Disable the 3Dfx splash screen */
 	putenv("FX_GLIDE_NO_SPLASH=0");
-		
+
+	VID_UpdateModeInfo();
+
 	/* Start the graphics mode and load refresh DLL */
 	VID_CheckChanges();
 }

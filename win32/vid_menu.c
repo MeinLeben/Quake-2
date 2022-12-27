@@ -203,25 +203,24 @@ static void CancelChanges( void *unused )
 	M_PopMenu();
 }
 
+static char** resolutions = NULL;
 /*
 ** VID_MenuInit
 */
 void VID_MenuInit( void )
 {
-	static const char *resolutions[] = 
+	if ( !resolutions )
 	{
-		"[320 240  ]",
-		"[400 300  ]",
-		"[512 384  ]",
-		"[640 480  ]",
-		"[800 600  ]",
-		"[960 720  ]",
-		"[1024 768 ]",
-		"[1152 864 ]",
-		"[1280 960 ]",
-		"[1600 1200]",
-		0
-	};
+		resolutions = Z_Malloc( sizeof(char*) * vid_num_modes + 1 );
+		for ( int i = 0; i < vid_num_modes; i++ )
+		{
+			const char* description = VID_GetModeDescription(i);
+			resolutions[i] = Z_Malloc(strlen(description));
+			strcpy(resolutions[i], description);
+		}
+		resolutions[vid_num_modes] = 0;
+	}
+
 	static const char *refs[] =
 	{
 		"[software      ]",

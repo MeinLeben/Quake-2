@@ -40,3 +40,7 @@ void	VID_CheckChanges (void);
 void	VID_MenuInit( void );
 void	VID_MenuDraw( void );
 const char *VID_MenuKey( int );
+
+const char *VID_GetModeDescription( int mode );
+
+extern int vid_num_modes;
