@@ -43,6 +43,8 @@ glwstate_t glw_state;
 
 extern cvar_t *vid_fullscreen;
 extern cvar_t *vid_ref;
+extern cvar_t *vid_width;
+extern cvar_t *vid_height;
 
 static qboolean VerifyDriver( void )
 {
@@ -93,7 +95,7 @@ qboolean VID_CreateWindow( int width, int height, qboolean fullscreen )
 	else
 	{
 		exstyle = 0;
-		stylebits = WINDOW_STYLE;
+		stylebits = WS_OVERLAPPEDWINDOW;
 	}
 
 	r.left = 0;
@@ -165,7 +167,13 @@ rserr_t GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen 
 
 	ri.Con_Printf (PRINT_ALL, "...setting mode %d:", mode );
 
-	if ( !ri.Vid_GetModeInfo( &width, &height, mode ) )
+	if ((vid_height->modified || vid_width->modified) && vid_height->value > 32 && vid_width->value > 24) {
+		width = vid_width->value;
+		height = vid_height->value;
+		vid_width->modified = false;
+		vid_height->modified = false;
+	}
+	else if ( !ri.Vid_GetModeInfo( &width, &height, mode ) )
 	{
 		ri.Con_Printf( PRINT_ALL, " invalid mode\n" );
 		return rserr_invalid_mode;

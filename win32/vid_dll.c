@@ -41,6 +41,8 @@ static UINT MSH_MOUSEWHEEL;
 // Console variables that we need to access from this module
 cvar_t		*vid_gamma;
 cvar_t		*vid_ref;			// Name of Refresh DLL loaded
+cvar_t		*vid_width;
+cvar_t		*vid_height;
 cvar_t		*vid_xpos;			// X coordinate of window position
 cvar_t		*vid_ypos;			// Y coordinate of window position
 cvar_t		*vid_fullscreen;
@@ -354,7 +356,23 @@ LONG WINAPI MainWndProc (
 				re.AppActivate( !( fActive == WA_INACTIVE ) );
 		}
         return DefWindowProc (hWnd, uMsg, wParam, lParam);
+	case WM_SIZE:
+		{
+			if (!vid_fullscreen->value)
+			{
+				int width = (int)LOWORD(lParam);
+				int	height = (int)HIWORD(lParam);
 
+				if (vid_width->value != width || vid_height->value != height)
+				{
+					Cvar_SetValue("vid_width", width);
+					Cvar_SetValue("vid_height", height);
+
+					vid_ref->modified = true;
+				}
+			}
+		}
+		return DefWindowProc (hWnd, uMsg, wParam, lParam);
 	case WM_MOVE:
 		{
 			int		xPos, yPos;
@@ -585,6 +603,12 @@ qboolean VID_GetModeInfo( int *width, int *height, int mode )
 	*width  = vid_modes[mode].width;
 	*height = vid_modes[mode].height;
 
+	Cvar_SetValue("vid_width", *width);
+	Cvar_SetValue("vid_height", *height);
+
+	vid_width->modified = false;
+	vid_height->modified = false;
+
 	return true;
 }
 
@@ -791,6 +815,8 @@ void VID_Init (void)
 {
 	/* Create the video variables so we know how to start the graphics drivers */
 	vid_ref = Cvar_Get ("vid_ref", "soft", CVAR_ARCHIVE);
+	vid_width = Cvar_Get ("vid_width", "640", CVAR_ARCHIVE);
+	vid_height = Cvar_Get ("vid_height", "480", CVAR_ARCHIVE);
 	vid_xpos = Cvar_Get ("vid_xpos", "3", CVAR_ARCHIVE);
 	vid_ypos = Cvar_Get ("vid_ypos", "22", CVAR_ARCHIVE);
 	vid_fullscreen = Cvar_Get ("vid_fullscreen", "0", CVAR_ARCHIVE);
