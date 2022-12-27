@@ -501,8 +501,8 @@ void VID_UpdateModeInfo()
 	tmp_modes = Z_Malloc(sizeof(vidmode_t) * tmp_num_modes);
 	for ( int i = 0; EnumDisplaySettings( NULL, i, &dm ) != 0; i++ )
 	{
-		if ((dm.dmPelsWidth / 16) * 9 != dm.dmPelsHeight)
-			continue;
+//		if ((dm.dmPelsWidth / 16) * 9 != dm.dmPelsHeight)
+//			continue;
 
 		validmode = true;
 		for (int j = 0; j < mode_index; j++)
@@ -522,16 +522,51 @@ void VID_UpdateModeInfo()
 		tmp_modes[mode_index].width = dm.dmPelsWidth;
 		tmp_modes[mode_index].height = dm.dmPelsHeight;
 
-		Com_sprintf(scratch, sizeof(scratch), "[%dx%d]", tmp_modes[mode_index].width, tmp_modes[mode_index].height);
-		tmp_modes[mode_index].description = Z_Malloc(strlen(scratch));
-		strcpy(tmp_modes[mode_index].description, scratch);
+		Com_sprintf( scratch, sizeof(scratch), "[%dx%d]", tmp_modes[mode_index].width, tmp_modes[mode_index].height );
+		tmp_modes[mode_index].description = Z_Malloc( strlen(scratch) );
+		strcpy( tmp_modes[mode_index].description, scratch );
 		mode_index++;
 	}
 
 	vid_num_modes = mode_index;
+	vid_modes = Z_Malloc( sizeof(vidmode_t) * vid_num_modes);
 
-	vid_modes = Z_Malloc(sizeof(vidmode_t) * vid_num_modes);
-	memcpy(vid_modes, tmp_modes, sizeof(vidmode_t) * vid_num_modes);
+	for ( int i = 0; i < vid_num_modes; i++ )
+	{
+		vidmode_t mode = tmp_modes[0];
+		for ( int j = 1; j < vid_num_modes; j++ )
+		{
+			if ( tmp_modes[j].mode == -1 )
+			{
+				continue;
+			}
+
+			if ( mode.mode == -1 )
+			{
+				mode = tmp_modes[j];
+				continue;
+			}
+
+			if ( mode.width > tmp_modes[j].width )
+			{
+				mode = tmp_modes[j];
+			}
+			else if ( mode.width == tmp_modes[j].width )
+			{
+				if ( mode.height > tmp_modes[j].height )
+				{
+					mode = tmp_modes[j];
+				}
+			}
+		}
+
+		tmp_modes[mode.mode].description = "NULL";
+		tmp_modes[mode.mode].width = -1;
+		tmp_modes[mode.mode].height = -1;
+		tmp_modes[mode.mode].mode = -1;
+		vid_modes[i] = mode;
+	}
+
 	Z_Free(tmp_modes);
 }
 
